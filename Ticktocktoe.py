@@ -1,3 +1,4 @@
+import tkinter as tk
 import random
 
 def print_board(board):
@@ -26,36 +27,54 @@ def get_available_moves(board):
 def get_computer_move(board):
     return random.choice(get_available_moves(board))
 
-def tic_tac_toe():
+def update_ui():
+    for i in range(3):
+        for j in range(3):
+            cell_label = board_labels[i][j]
+            cell_value = board[i][j]
+            cell_label.config(text=cell_value, state=tk.DISABLED if cell_value != " " else tk.NORMAL)
+
+def on_cell_click(row, col):
+    global player_index
+
+    if board[row][col] == " ":
+        board[row][col] = players[player_index]
+
+        if check_winner(board, players[player_index]):
+            winner_label.config(text=f"Player {players[player_index]} wins!", fg="green")
+            for i in range(3):
+                for j in range(3):
+                    board_labels[i][j].config(state=tk.DISABLED)
+        elif is_board_full(board):
+            winner_label.config(text="It's a tie!", fg="orange")
+        else:
+            player_index = 1 - player_index
+            update_ui()
+
+def tic_tac_toe_ui():
+    global board, players, player_index, board_labels, winner_label
+
     board = [[" " for _ in range(3)] for _ in range(3)]
     players = ["X", "O"]
     player_index = 0
 
-    while True:
-        print_board(board)
-        current_player = players[player_index]
+    root = tk.Tk()
+    root.title("Colorful Tic-Tac-Toe")
 
-        if is_board_full(board):
-            print("It's a tie!")
-            break
+    board_labels = [[None] * 3 for _ in range(3)]
 
-        if current_player == "X":
-            move = input("Player X, enter your move (row and column, e.g., 1 1 for the top-left cell): ")
-            row, col = map(int, move.split())
-        else:
-            row, col = get_computer_move(board)
+    for i in range(3):
+        for j in range(3):
+            board_labels[i][j] = tk.Button(root, text=" ", font=("Helvetica", 24), width=5, height=2,
+                                           command=lambda i=i, j=j: on_cell_click(i, j))
+            board_labels[i][j].grid(row=i, column=j)
+    
+    winner_label = tk.Label(root, text="", font=("Helvetica", 16), fg="black")
+    winner_label.grid(row=3, columnspan=3)
 
-        if board[row][col] == " ":
-            board[row][col] = current_player
+    update_ui()
 
-            if check_winner(board, current_player):
-                print_board(board)
-                print(f"Player {current_player} wins!")
-                break
-
-            player_index = 1 - player_index  
-        else:
-            print("Cell already taken. Try again.")
+    root.mainloop()
 
 if __name__ == "__main__":
-    tic_tac_toe()
+    tic_tac_toe_ui()
